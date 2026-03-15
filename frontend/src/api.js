@@ -1,4 +1,4 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://humanizer-backend-5tzv.onrender.com/api';
 
 class ApiClient {
     async humanizeText(text, style = 'default') {
