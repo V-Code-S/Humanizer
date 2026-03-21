@@ -10,12 +10,41 @@ import logging
 from app.services.paraphraser import ParaphraseModel
 from app.services.humanizer import HumanizationEngine
 from app.services.grammar import GrammarCorrector
-from app.utils.text_processing import TextProcessor
 
 # Setup logger
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
+
+
+def _get_optional_paraphraser():
+    """Return the paraphraser instance when available."""
+    try:
+        return ParaphraseModel.get_instance()
+    except Exception as exc:
+        logger.warning("Paraphraser unavailable, falling back to original text: %s", exc)
+        return None
+
+
+def _get_optional_humanizer():
+    """Return the humanization engine when available."""
+    try:
+        return HumanizationEngine.get_instance()
+    except Exception as exc:
+        logger.warning("Humanization engine unavailable, using passthrough fallback: %s", exc)
+        return None
+
+
+def _safe_paraphrase(paraphraser, text: str) -> str:
+    if paraphraser is None:
+        return text
+    return paraphraser.paraphrase(text)
+
+
+def _safe_humanize(humanizer, text: str, style: Optional[str]) -> str:
+    if humanizer is None:
+        return text
+    return humanizer.humanize(text, style=style or "default")
 
 # Pydantic models
 class HumanizeRequest(BaseModel):
@@ -72,15 +101,15 @@ async def humanize_text(request: HumanizeRequest):
         logger.info(f"Processing text with style: {request.style}")
         
         # Get services
-        paraphraser = ParaphraseModel.get_instance()
-        humanizer = HumanizationEngine.get_instance()
+        paraphraser = _get_optional_paraphraser()
+        humanizer = _get_optional_humanizer()
         
         # Step 1: Paraphrase
-        paraphrased = paraphraser.paraphrase(text)
+        paraphrased = _safe_paraphrase(paraphraser, text)
         logger.debug(f"Paraphrased: {paraphrased[:50]}...")
         
         # Step 2: Humanize
-        humanized = humanizer.humanize(paraphrased, style=request.style)
+        humanized = _safe_humanize(humanizer, paraphrased, request.style)
         logger.debug(f"Humanized: {humanized[:50]}...")
         
         # Step 3: Grammar correction
@@ -125,8 +154,8 @@ async def bulk_humanize(request: BulkHumanizeRequest):
             raise HTTPException(status_code=400, detail="Maximum 10 texts per request")
         
         results = []
-        paraphraser = ParaphraseModel.get_instance()
-        humanizer = HumanizationEngine.get_instance()
+        paraphraser = _get_optional_paraphraser()
+        humanizer = _get_optional_humanizer()
         grammar_corrector = GrammarCorrector()
         
         for text in request.texts:
@@ -140,8 +169,8 @@ async def bulk_humanize(request: BulkHumanizeRequest):
                 continue
             
             try:
-                paraphrased = paraphraser.paraphrase(text)
-                humanized = humanizer.humanize(paraphrased, style=request.style)
+                paraphrased = _safe_paraphrase(paraphraser, text)
+                humanized = _safe_humanize(humanizer, paraphrased, request.style)
                 final = grammar_corrector.correct(humanized)
                 
                 results.append({
@@ -196,12 +225,12 @@ async def analyze_text(request: HumanizeRequest):
         if not text:
             raise HTTPException(status_code=400, detail="Text cannot be empty")
         
-        paraphraser = ParaphraseModel.get_instance()
-        humanizer = HumanizationEngine.get_instance()
+        paraphraser = _get_optional_paraphraser()
+        humanizer = _get_optional_humanizer()
         grammar_corrector = GrammarCorrector()
         
-        paraphrased = paraphraser.paraphrase(text)
-        humanized = humanizer.humanize(paraphrased, style=request.style)
+        paraphrased = _safe_paraphrase(paraphraser, text)
+        humanized = _safe_humanize(humanizer, paraphrased, request.style)
         final_text = grammar_corrector.correct(humanized)
         
         original_metrics = TextProcessor.get_text_metrics(text)

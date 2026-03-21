@@ -11,18 +11,7 @@ try:
     import nltk
     from nltk.tokenize import sent_tokenize, word_tokenize
     from nltk.corpus import stopwords
-    
-    # Download required NLTK data
-    try:
-        nltk.data.find('tokenizers/punkt')
-    except LookupError:
-        nltk.download('punkt', quiet=True)
-    
-    try:
-        nltk.data.find('corpora/stopwords')
-    except LookupError:
-        nltk.download('stopwords', quiet=True)
-    
+
     HAS_NLTK = True
 except ImportError:
     HAS_NLTK = False
@@ -31,6 +20,19 @@ logger = logging.getLogger(__name__)
 
 class TextProcessor:
     """Utility class for text processing operations"""
+
+    @staticmethod
+    def _has_nltk_resource(resource_path: str) -> bool:
+        """Check whether an NLTK resource is available locally."""
+        if not HAS_NLTK:
+            return False
+
+        try:
+            nltk.data.find(resource_path)
+            return True
+        except LookupError:
+            logger.warning("NLTK resource missing: %s. Using lightweight fallback.", resource_path)
+            return False
     
     @staticmethod
     def segment_sentences(text: str) -> List[str]:
@@ -47,7 +49,7 @@ class TextProcessor:
             return []
         
         try:
-            if HAS_NLTK:
+            if HAS_NLTK and TextProcessor._has_nltk_resource('tokenizers/punkt'):
                 return sent_tokenize(text)
             else:
                 # Fallback to simple regex splitting
@@ -72,7 +74,7 @@ class TextProcessor:
             return []
         
         try:
-            if HAS_NLTK:
+            if HAS_NLTK and TextProcessor._has_nltk_resource('tokenizers/punkt'):
                 return word_tokenize(text)
             else:
                 # Fallback to simple regex tokenization
@@ -115,12 +117,12 @@ class TextProcessor:
             burstiness = max(sentence_lengths) - min(sentence_lengths) if sentence_lengths else 0
             
             # Stopword ratio
-            if HAS_NLTK:
+            if HAS_NLTK and TextProcessor._has_nltk_resource('corpora/stopwords'):
                 try:
                     stop_words = set(stopwords.words('english'))
                     stopword_count = sum(1 for word in words if word.lower() in stop_words)
                     stopword_ratio = stopword_count / word_count if word_count > 0 else 0
-                except:
+                except Exception:
                     stopword_ratio = 0
             else:
                 stopword_ratio = 0
