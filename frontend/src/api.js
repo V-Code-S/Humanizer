@@ -1,4 +1,5 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://humanizer-backend-5tzv.onrender.com/api';
+export const API_BASE_URL =
+    import.meta.env.VITE_API_URL?.trim() || 'https://humanizer-backend-u4xi.onrender.com/api';
 
 class ApiClient {
     async humanizeText(text, style = 'default') {

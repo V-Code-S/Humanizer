@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import InputBox from '../components/InputBox';
 import OutputBox from '../components/OutputBox';
 import HumanizeButton from '../components/HumanizeButton';
-import api from '../api';
+import api, { API_BASE_URL } from '../api';
 
 function Home() {
   const [inputText, setInputText] = useState('');
@@ -110,7 +110,7 @@ function Home() {
             className="mb-6 p-4 bg-yellow-100 dark:bg-yellow-900 border-l-4 border-yellow-500 rounded-lg"
           >
             <p className="text-sm text-yellow-800 dark:text-yellow-200">
-              ⚠️ Backend API is not responding. Make sure the FastAPI server is running on http://localhost:8000
+              ⚠️ Backend API is not responding at {API_BASE_URL}.
             </p>
           </motion.div>
         )}

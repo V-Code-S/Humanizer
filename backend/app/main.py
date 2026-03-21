@@ -34,6 +34,7 @@ allowed_origins = [
 if os.getenv("ENV") == "production":
     allowed_origins.extend([
         os.getenv("PROD_FRONTEND_URL", "https://humanizer.vercel.app"),
+        os.getenv("RENDER_FRONTEND_URL", "https://humanizer-frontend.onrender.com"),
     ])
 
 app.add_middleware(
