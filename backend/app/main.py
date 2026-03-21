@@ -76,23 +76,6 @@ async def global_exception_handler(request, exc):
         }
     )
 
-# Startup event
-@app.on_event("startup")
-async def startup_event():
-    """Initialize models and resources on startup"""
-    print("🚀 Initializing Humanizer API...")
-    from app.services.paraphraser import ParaphraseModel
-    from app.services.humanizer import HumanizationEngine
-    
-    # Pre-load models
-    print("📦 Loading paraphrase model...")
-    ParaphraseModel.get_instance()
-    
-    print("📦 Loading humanization engine...")
-    HumanizationEngine.get_instance()
-    
-    print("✅ Humanizer API ready!")
-
 @app.on_event("shutdown")
 async def shutdown_event():
     """Cleanup on shutdown"""

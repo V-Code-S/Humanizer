@@ -46,7 +46,7 @@ class HumanizationEngine:
         
         try:
             # Load optional humanization model
-            self.model_name = "google/flan-t5-large"
+            self.model_name = "google/flan-t5-base"
             logger.info(f"Loading humanization model: {self.model_name}")
             self.tokenizer = AutoTokenizer.from_pretrained(self.model_name)
             self.model = AutoModelForSeq2SeqLM.from_pretrained(self.model_name)
@@ -62,6 +62,7 @@ class HumanizationEngine:
     def get_instance(cls):
         """Get or create singleton instance"""
         if cls._instance is None:
+            logger.info("📦 Loading humanization engine (lazy)...")
             cls._instance = cls()
         return cls._instance
     

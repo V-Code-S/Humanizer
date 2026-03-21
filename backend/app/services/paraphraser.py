@@ -35,6 +35,7 @@ class ParaphraseModel:
     def get_instance(cls):
         """Get or create singleton instance"""
         if cls._instance is None:
+            logger.info("📦 Loading paraphrase model (lazy)...")
             cls._instance = cls()
         return cls._instance
     
