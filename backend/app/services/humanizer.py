@@ -4,10 +4,7 @@ Uses techniques like sentence variation, tone adjustment, and structural diversi
 """
 import logging
 import random
-from typing import Optional, List
 import re
-from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
-import torch
 
 logger = logging.getLogger(__name__)
 
@@ -42,10 +39,15 @@ class HumanizationEngine:
     
     def __init__(self):
         """Initialize the humanization engine"""
-        self.device = "cuda" if torch.cuda.is_available() else "cpu"
+        import torch
+
+        self.torch = torch
+        self.device = "cuda" if self.torch.cuda.is_available() else "cpu"
         
         try:
             # Load optional humanization model
+            from transformers import AutoModelForSeq2SeqLM, AutoTokenizer
+
             self.model_name = "google/flan-t5-base"
             logger.info(f"Loading humanization model: {self.model_name}")
             self.tokenizer = AutoTokenizer.from_pretrained(self.model_name)

@@ -15,13 +15,16 @@ from dotenv import load_dotenv
 # Load environment variables
 load_dotenv()
 
+# Expose the ASGI application for platforms like Render that use `uvicorn run:app`
+from app.main import app
+
 if __name__ == "__main__":
     host = os.getenv("HOST", "0.0.0.0")
     port = int(os.getenv("PORT", 8000))
-    reload = os.getenv("RELOAD", "true").lower() == "true"
+    reload = os.getenv("RELOAD", "false").lower() == "true"
     
     uvicorn.run(
-        "app.main:app",
+        app,
         host=host,
         port=port,
         reload=reload,

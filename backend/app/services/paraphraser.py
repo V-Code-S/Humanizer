@@ -3,9 +3,6 @@ Paraphrasing service using HuggingFace Transformers.
 Uses T5-based paraphrasing model.
 """
 import logging
-from typing import Optional
-from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
-import torch
 
 logger = logging.getLogger(__name__)
 
@@ -16,8 +13,12 @@ class ParaphraseModel:
     
     def __init__(self):
         """Initialize the paraphrase model"""
+        import torch
+        from transformers import AutoModelForSeq2SeqLM, AutoTokenizer
+
+        self.torch = torch
         self.model_name = "Vamsi/T5_Paraphrase_Paws"
-        self.device = "cuda" if torch.cuda.is_available() else "cpu"
+        self.device = "cuda" if self.torch.cuda.is_available() else "cpu"
         
         logger.info(f"Loading paraphrase model: {self.model_name} on {self.device}")
         
@@ -67,7 +68,7 @@ class ParaphraseModel:
             ).to(self.device)
             
             # Generate paraphrase
-            with torch.no_grad():
+            with self.torch.no_grad():
                 outputs = self.model.generate(
                     inputs,
                     max_length=max_length,
